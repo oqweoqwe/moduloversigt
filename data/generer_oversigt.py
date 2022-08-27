@@ -109,10 +109,9 @@ class Main:
 		
 		for i in range(4,self.team_report_sheet.max_row+1-5):
 			name = self.team_report_sheet[f'A{i}'].value
-			name_lower = name.lower()
 			total = self.team_report_sheet[f'G{i}'].value
 
-			if self.is_name_legal(name_lower):
+			if self.is_name_legal(name):
 				self.teams.append(Team(name,total))
 
 	def get_level(self, team_name):
@@ -145,8 +144,7 @@ class Main:
 
 				class_id = self.get_class_id(team.name)
 				subject = self.get_subject_name(team.name)
-				sheet_name = self.get_sheet_by_class_id(class_id)
-				sheet = self.module_distribution[sheet_name]
+				sheet = self.get_sheet_by_class_id(class_id)
 
 				team.level = self.get_level(team.name)
 
@@ -223,7 +221,7 @@ class Main:
 		sheets = self.module_distribution.sheetnames
 		for sheet in sheets:
 			if class_id in sheet:
-				return sheet
+				return self.module_distribution[sheet]
 
 	def get_class_id(self, name):
 
