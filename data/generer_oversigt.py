@@ -61,81 +61,34 @@ class Main:
 
 		# write stamklasseundervisning
 		for klasse in classes:
-			self.editing_sheet = self.result.create_sheet(klasse)
-			self.index = 2
-			self.editing_sheet["A1"].value = "Hold"
-			self.editing_sheet["B1"].value = "Planlagt/afholdt"
-			self.editing_sheet["C1"].value = "Holdnorm ifølge modulfordeling"
+			self.setup_editing_sheet(klasse)
 			for team in self.get_klasse_by_name(klasse).teams:
 				
-				self.editing_sheet[f"A{self.index}"].value = team.name
-				self.editing_sheet[f"B{self.index}"].value = team.total
-				planned_amount = team.planned_amount
-				self.editing_sheet[f"C{self.index}"].value = planned_amount
-
-				if planned_amount == -1:
-					self.error.append(team.name)
-				self.index = self.index+1
+				self.write_team(team)
 		
 		# write flerklassehold
-
 		for team in self.flerklassehold:
 			
 			# hvis sheet eksisterer
 			if "Andre" in self.result.sheetnames:
 				self.editing_sheet = self.result["Andre"]
-				self.editing_sheet[f"A{self.index}"].value = team.name
-				self.editing_sheet[f"B{self.index}"].value = team.total
-				planned_amount = team.planned_amount
-				self.editing_sheet[f"C{self.index}"].value = planned_amount
-
-				if planned_amount == -1:
-					self.error.append(team.name)
-				self.index = self.index+1
+				self.write_team(team)
 			else:
-				self.editing_sheet = self.result.create_sheet("Andre")
-				self.editing_sheet["A1"].value = "Hold"
-				self.editing_sheet["B1"].value = "Planlagt/afholdt"
-				self.editing_sheet["C1"].value = "Holdnorm ifølge modulfordeling"
-				self.index = 2
-				self.editing_sheet[f"A{self.index}"].value = team.name
-				self.editing_sheet[f"B{self.index}"].value = team.total
-				planned_amount = team.planned_amount
-				self.editing_sheet[f"C{self.index}"].value = planned_amount
-
-				if planned_amount == -1:
-					self.error.append(team.name)
-				self.index = self.index+1
+				self.setup_editing_sheet("Andre")
+				self.write_team(team)
 
 		# write valgfag
-		
 		for team in self.valgfag:
 			
 			# hvis sheet eksisterer
 			if "Valgfag" in self.result.sheetnames:
 				self.editing_sheet = self.result["Valgfag"]
-				self.editing_sheet[f"A{self.index}"].value = team.name
-				self.editing_sheet[f"B{self.index}"].value = team.total
-				planned_amount = team.planned_amount
-				self.editing_sheet[f"C{self.index}"].value = planned_amount
-
-				if planned_amount == -1:
-					self.error.append(team.name)
-				self.index = self.index+1
+				self.write_team(team)
 			else:
-				self.editing_sheet = self.result.create_sheet("Valgfag")
-				self.editing_sheet["A1"].value = "Hold"
-				self.editing_sheet["B1"].value = "Planlagt/afholdt"
-				self.editing_sheet["C1"].value = "Holdnorm ifølge modulfordeling"
-				self.index = 2
-				self.editing_sheet[f"A{self.index}"].value = team.name
-				self.editing_sheet[f"B{self.index}"].value = team.total
-				planned_amount = team.planned_amount
-				self.editing_sheet[f"C{self.index}"].value = planned_amount
+				self.setup_editing_sheet("Valgfag")
+				self.write_team(team)
 
-				if planned_amount == -1:
-					self.error.append(team.name)
-				self.index = self.index+1
+		self.style_cells()
 
 		self.result.remove(self.result["Sheet"])
 
@@ -145,6 +98,51 @@ class Main:
 			self.log(f"An error occured while parsing the following teams ({len(self.error)}/{len(self.teams)}): {self.error}")
 
 		self.log(f"Results saved at {self.result_path}")
+
+	def style_cells(self):
+
+		for sheet_name in self.result.sheetnames:
+			sheet = self.result[sheet_name]
+			for cell in sheet['D']:
+				if cell.row == 1:
+					for cell in sheet[cell.row]:
+						if cell:
+							cell.style = "Headline 1"
+					continue
+				if cell.value == 0:
+					for cell in sheet[cell.row]:
+						if cell:
+							cell.style = "Good"
+					continue
+				elif cell.value < 4:
+					for cell in sheet[cell.row]:
+						if cell:
+							cell.style = "Neutral"
+					continue
+				else:
+					for cell in sheet[cell.row]:
+						if cell:
+							cell.style = "Bad"
+					continue
+
+	def write_team(self, team):
+		self.editing_sheet[f"A{self.index}"].value = team.name
+		self.editing_sheet[f"B{self.index}"].value = team.total
+		planned_amount = team.planned_amount
+		self.editing_sheet[f"C{self.index}"].value = planned_amount
+		self.editing_sheet[f"D{self.index}"].value = team.total - planned_amount
+
+		if planned_amount == -1:
+			self.error.append(team.name)
+		self.index = self.index+1
+
+	def setup_editing_sheet(self, name):
+		self.editing_sheet = self.result.create_sheet(name)
+		self.editing_sheet["A1"].value = "Hold"
+		self.editing_sheet["B1"].value = "Skema"
+		self.editing_sheet["C1"].value = "Norm"
+		self.editing_sheet["D1"].value = "Afvigelse"
+		self.index = 2
 
 	def get_klasse_by_name(self, name):
 		for klasse in self.klasser:
