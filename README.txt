@@ -1,4 +1,7 @@
-
+Start med at besøge github.com/oqweoqwe/moduloversigt. Tryk på den grønne knap hvor der står Code og vælg Download ZIP.
+Find den downloadede mappe under Overførsler på din computer, højreklik på mappen, tryk Udpak alle og tryk på enter.
+Du vil nu se en ny mappe der hedder "moduloversigt-master" og inde i den ligger en mappe der hedder det samme. Tag den indre mappe, og flyt den et sted hen
+hvor du kan finde den. I denne mappe ligger programmet. 
 
 Nu har du downloadet mappen hvori programmet ligger og udpakket den. Næste skridt er, at hente den nødvendige data. Åbn den samlede holdrapport for alle lærere
 fra Lectio, klik på de tre vandrette streger i øverste højre hjørne og klik på Kopier indhold til udklipsholder i Excel-format. 

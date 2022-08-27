@@ -234,6 +234,7 @@ class Main:
 
 				occurences = 0
 
+				# count occurences
 				for cell in sheet['D']:
 					if subject in str(cell.value).lower():
 						occurences = occurences+1
@@ -241,37 +242,20 @@ class Main:
 				for cell in sheet['D']:
 					if subject in str(cell.value).lower():
 
-						if self.get_year_from_class_id(class_id) == 1:
-							
-							if not sheet[f"E{cell.row}"].value == "Undervisning":
+						if not sheet[f"E{cell.row}"].value == "Undervisning":
 								continue
 
+						if self.get_year_from_class_id(class_id) == 1:
 							self.set_planned_amount('F', occurences, cell, sheet, subject, team)
-
 							continue
 						if self.get_year_from_class_id(class_id) == 2:
-							
-							if not sheet[f"E{cell.row}"].value == "Undervisning":
-								continue
-
 							self.set_planned_amount('H', occurences, cell, sheet, subject, team)
-
 							continue
 						if self.get_year_from_class_id(class_id) == 3:
-							
-							if not sheet[f"E{cell.row}"].value == "Undervisning":
-								continue
-
 							self.set_planned_amount('J', occurences, cell, sheet, subject, team)
-
 							continue
 						if self.get_year_from_class_id(class_id) == 4:
-							
-							if not sheet[f"E{cell.row}"].value == "Undervisning":
-								continue
-
 							self.set_planned_amount('L', occurences, cell, sheet, subject, team)
-
 							continue
 			else:
 				# team er ikke stamklasseundervisning
