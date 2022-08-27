@@ -12,3 +12,6 @@ Vær opmærksom på, at holdrapporten helst skal være så ny som muligt da skem
 Du kan blot slette den gamle og følge samme procedure som beskrevet ovenfor for at lægge en ny holdrapport ind. 
 
 Vær opmærksom på, at programmet ikke virker, hvis Oversigt-arket er åbent i Excel. 
+
+Du kan følge med i programmets fremgang via det vindue der åbner, når du kører generer_oversigt.bat. Det der skrives i vinduet bliver også gemt i latest.txt.
+Indholdet af latest.txt kan bruges til fejlfinding hvis noget går galt. 

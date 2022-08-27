@@ -1,9 +1,15 @@
 import openpyxl
 from datetime import datetime
 import time
+from os.path import exists
+from os import remove
 
 # flerklassehold: 2cf Mu, 2fi MA, 3c4i EN 1
 # valgfag
+
+illegal = ["1g","blå","grøn","rød","gul","gf","dho","ff","sro","ssb","øh","hørelære","sammenspil","kor","klassisk","rytmisk","mgk","projekttime","kt","eksamen"]
+
+log_path = "latest.txt"
 
 holdrapport = "data/Samlet holdrapport.xlsx"
 modulfordeling = "data/Samlet modulfordeling.xlsx"
@@ -25,6 +31,11 @@ class Main:
 		self.result = openpyxl.Workbook()
 		self.result_sheet = self.result.active
 
+		# if latest.txt exists, delete it
+		if exists(log_path):
+			self.log("Found old log, deleting it")
+			remove(log_path)
+
 		# load files into memory
 		self.load_files()
 
@@ -41,7 +52,6 @@ class Main:
 
 		error = []
 
-		before = time.time()
 		self.log(f"Started writing to {self.result_path}")
 
 		index = 2
@@ -61,13 +71,18 @@ class Main:
 
 		self.result.save(self.result_path)
 
-		self.log(f"Results saved at {self.result_path}. Writing took {round(time.time()-before,1)} seconds")
 		if len(error) > 0:
 			self.log(f"An error occured while parsing the following teams ({len(error)}/{self.result_sheet.max_row-1}): {error}")
 
+		self.log(f"Results saved at {self.result_path}")
+
 	def log(self, msg):
 		now = datetime.now().strftime("%H:%M:%S")
-		print(f"[{now}] {msg}")
+		txt = f"[{now}] {msg}"
+		print(txt)
+		with open(log_path, 'a') as f:
+			f.write("".join(txt))
+			f.write("\n")
 
 	def load_files(self):
 		
@@ -222,48 +237,12 @@ class Main:
 
 	def is_name_legal(self, name):
 
-		if "1g" in name:
+		if name[0] == "1":
 			return False
-		if "blå" in name:
-			return False
-		if "grøn" in name:
-			return False
-		if "rød" in name:
-			return False
-		if "gul" in name:
-			return False
-		if "gf" in name:
-			return False
-		if name[0] == '1':
-			return False
-		if "dho" in name:
-			return False
-		if "ff" in name:
-			return False
-		if "sro" in name:
-			return False
-		if "ssb" in name:
-			return False
-		if "øh" in name:
-			return False
-		if "hørelære" in name:
-			return False
-		if "sammenspil" in name:
-			return False
-		if "kor" in name:
-			return False
-		if "klassisk" in name:
-			return False
-		if "rytmisk" in name:
-			return False
-		if "mgk" in name:
-			return False
-		if "projekttime" in name:
-			return False
-		if "kt" in name:
-			return False
-		if "eksamen" in name:
-			return False
+
+		for word in illegal:
+			if word in name.lower():
+				return False
 		return True
 
 class Team:
