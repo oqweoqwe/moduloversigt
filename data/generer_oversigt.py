@@ -27,7 +27,11 @@ class Main:
 		self.teams = []
 		self.result_path = "Oversigt.xlsx"
 		self.result = openpyxl.Workbook()
-		self.result_sheet = self.result.active
+		self.klasser = []
+		self.valgfag = []
+		self.flerklassehold = []
+
+		self.editing_sheet = None
 
 		# if latest.txt exists, delete it
 		if exists(log_path):
@@ -40,6 +44,9 @@ class Main:
 		# get all teams from team report, filtering out unimportant ones
 		self.load_teams()
 
+		# load stamklasser
+		self.load_klasser()
+
 		# load the correct amount of modules for each team from the plan
 		self.load_correct_amounts()
 
@@ -48,31 +55,106 @@ class Main:
 
 	def write(self):
 
-		error = []
+		self.error = []
 
 		self.log(f"Started writing to {self.result_path}")
 
-		index = 2
-		self.result_sheet["A1"].value = "Hold"
-		self.result_sheet["B1"].value = "Planlagt/afholdt"
-		self.result_sheet["C1"].value = "burde have"
-		
-		for team in self.teams:
-			self.result_sheet[f"A{index}"].value = team.name
-			self.result_sheet[f"B{index}"].value = team.total
-			planned_amount = team.planned_amount
-			self.result_sheet[f"C{index}"].value = planned_amount
+		# write stamklasseundervisning
+		for klasse in classes:
+			self.editing_sheet = self.result.create_sheet(klasse)
+			self.index = 2
+			self.editing_sheet["A1"].value = "Hold"
+			self.editing_sheet["B1"].value = "Planlagt/afholdt"
+			self.editing_sheet["C1"].value = "Holdnorm ifølge modulfordeling"
+			for team in self.get_klasse_by_name(klasse).teams:
+				
+				self.editing_sheet[f"A{self.index}"].value = team.name
+				self.editing_sheet[f"B{self.index}"].value = team.total
+				planned_amount = team.planned_amount
+				self.editing_sheet[f"C{self.index}"].value = planned_amount
 
-			if planned_amount == -1:
-				error.append(team.name)
-			index = index+1
+				if planned_amount == -1:
+					self.error.append(team.name)
+				self.index = self.index+1
+		
+		# write flerklassehold
+
+		for team in self.flerklassehold:
+			
+			# hvis sheet eksisterer
+			if "Andre" in self.result.sheetnames:
+				self.editing_sheet = self.result["Andre"]
+				self.editing_sheet[f"A{self.index}"].value = team.name
+				self.editing_sheet[f"B{self.index}"].value = team.total
+				planned_amount = team.planned_amount
+				self.editing_sheet[f"C{self.index}"].value = planned_amount
+
+				if planned_amount == -1:
+					self.error.append(team.name)
+				self.index = self.index+1
+			else:
+				self.editing_sheet = self.result.create_sheet("Andre")
+				self.editing_sheet["A1"].value = "Hold"
+				self.editing_sheet["B1"].value = "Planlagt/afholdt"
+				self.editing_sheet["C1"].value = "Holdnorm ifølge modulfordeling"
+				self.index = 2
+				self.editing_sheet[f"A{self.index}"].value = team.name
+				self.editing_sheet[f"B{self.index}"].value = team.total
+				planned_amount = team.planned_amount
+				self.editing_sheet[f"C{self.index}"].value = planned_amount
+
+				if planned_amount == -1:
+					self.error.append(team.name)
+				self.index = self.index+1
+
+		# write valgfag
+		
+		for team in self.valgfag:
+			
+			# hvis sheet eksisterer
+			if "Valgfag" in self.result.sheetnames:
+				self.editing_sheet = self.result["Valgfag"]
+				self.editing_sheet[f"A{self.index}"].value = team.name
+				self.editing_sheet[f"B{self.index}"].value = team.total
+				planned_amount = team.planned_amount
+				self.editing_sheet[f"C{self.index}"].value = planned_amount
+
+				if planned_amount == -1:
+					self.error.append(team.name)
+				self.index = self.index+1
+			else:
+				self.editing_sheet = self.result.create_sheet("Valgfag")
+				self.editing_sheet["A1"].value = "Hold"
+				self.editing_sheet["B1"].value = "Planlagt/afholdt"
+				self.editing_sheet["C1"].value = "Holdnorm ifølge modulfordeling"
+				self.index = 2
+				self.editing_sheet[f"A{self.index}"].value = team.name
+				self.editing_sheet[f"B{self.index}"].value = team.total
+				planned_amount = team.planned_amount
+				self.editing_sheet[f"C{self.index}"].value = planned_amount
+
+				if planned_amount == -1:
+					self.error.append(team.name)
+				self.index = self.index+1
+
+		self.result.remove(self.result["Sheet"])
 
 		self.result.save(self.result_path)
 
-		if len(error) > 0:
-			self.log(f"An error occured while parsing the following teams ({len(error)}/{self.result_sheet.max_row-1}): {error}")
+		if len(self.error) > 0:
+			self.log(f"An error occured while parsing the following teams ({len(self.error)}/{len(self.teams)}): {self.error}")
 
 		self.log(f"Results saved at {self.result_path}")
+
+	def get_klasse_by_name(self, name):
+		for klasse in self.klasser:
+			if klasse.name == name:
+				return klasse
+		return None
+
+	def load_klasser(self):
+		for klasse in classes:
+			self.klasser.append(Klasse(klasse, self.teams))
 
 	def log(self, msg):
 		now = datetime.now().strftime("%H:%M:%S")
@@ -197,10 +279,10 @@ class Main:
 				# team er ikke stamklasseundervisning
 				if not 'g' in team.name.split(" ",1)[0]:
 					# flerklassehold, eks. 2cf Mu
-					pass
+					self.flerklassehold.append(team)
 				else:
 					# valgfag
-					pass
+					self.valgfag.append(team)
 
 	def get_subject_name(self, team_name):
 		return subjects.get(team_name.lower().split(" ",2)[1])
@@ -253,6 +335,15 @@ class Team:
 		self.planned_amount = -1
 		self.level = None
 
+class Klasse:
+
+	def __init__(self, name, all_teams):
+
+		self.name = name
+		self.teams = []
+		for team in all_teams:
+			if team.name.split(' ',1)[0] in classes and team.name.split(" ",1)[0] == name:
+				self.teams.append(team)
 
 if __name__ == '__main__':
 	main = Main()
