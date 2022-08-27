@@ -3,6 +3,7 @@ from datetime import datetime
 import time
 from os.path import exists
 from os import remove
+from sys import exit
 
 # flerklassehold: 2cf Mu, 2fi MA, 3c4i EN 1
 # valgfag
@@ -18,9 +19,6 @@ classes = ["2a","2b","2c","2d","2e","2f","2h","2i","3a","3b","3c","3d","3e","3f"
 subjects = {"da":"dansk","dr":"drama", "bi":"biologi", "en":"engelsk","hi":"historie","id":"idræt","ma":"matematik","mu":"musik","sa":"samfundsfag",
 			"fy":"fysik", "bt":"biotek","ke":"kemi","ap":"ap","apla":"apla","ps":"psykologi","la":"latin","bk":"billedkunst","fi":"filosofi",
 			"ty":"tysk","fr":"fransk","sp":"spansk","ng":"naturgeografi","nv":"nv","ol":"oldtidskundskab","re":"religion"}
-
-# load modulfordeling?
-load_big = True
 
 class Main:
 
@@ -86,22 +84,25 @@ class Main:
 
 	def load_files(self):
 		
-		before = time.time()
-		now = datetime.now().strftime("%H:%M:%S")
-		self.log(f"Loading {holdrapport}...")
-		self.team_report = openpyxl.load_workbook(holdrapport)
-		self.team_report_sheet = self.team_report.active
-		self.log(f"Load took {round(time.time()-before,1)} seconds")
+		if exists(holdrapport):
+			before = time.time()
+			self.log(f"Loading {holdrapport}...")
+			self.team_report = openpyxl.load_workbook(holdrapport)
+			self.team_report_sheet = self.team_report.active
+			self.log(f"Load took {round(time.time()-before,1)} seconds")
+		else:
+			self.log(f"Couldn't find {holdrapport}, exiting")
+			exit()
 
-		if load_big:
+		if exists(modulfordeling):
 			before = time.time()
 			self.log(f"Loading {modulfordeling}...")
 			self.module_distribution = openpyxl.load_workbook(modulfordeling)
-			now = datetime.now().strftime("%H:%M:%S")
 			self.log(f"Load took {round(time.time()-before,1)} seconds")
 		else:
-			self.log(f"Running without loading {modulfordeling}")
-		
+			self.log(f"Couldn't find {modulfordeling}, exiting")
+			exit()
+
 		self.log(f"Using the following team report: {self.team_report_sheet['A1'].value}")
 
 	def load_teams(self):
